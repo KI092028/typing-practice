@@ -153,14 +153,15 @@ const ROMAJI_SENTENCES = [
 function loadStats(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return { sessions:0, recent:[] , daily:{}};
+    if(!raw) return { sessions:0, recent:[] , daily:{}, missMap:{} };
     const s = JSON.parse(raw);
     return {
       sessions: Number(s.sessions)||0,
       recent: Array.isArray(s.recent)? s.recent.slice(0,20):[],
       daily: s.daily && typeof s.daily==='object'? s.daily : {},
+      missMap: s.missMap && typeof s.missMap==='object' ? s.missMap : {},
     };
-  }catch{ return { sessions:0, recent:[], daily:{}}; }
+  }catch{ return { sessions:0, recent:[], daily:{}, missMap:{} }; }
 }
 function saveStats(stats){ localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); }
 function yyyymmdd(){
@@ -205,6 +206,7 @@ const resetStatsBtn = document.getElementById('resetStatsBtn');
 
 const accEl = document.getElementById('acc');
 const wpmEl = document.getElementById('wpm');
+const scoreEl = document.getElementById('score');
 const sessionsEl = document.getElementById('sessions');
 const streakBadge = document.getElementById('streakBadge');
 
@@ -221,6 +223,7 @@ const giveUpBtn = document.getElementById('giveUpBtn');
 
 const rAccEl = document.getElementById('rAcc');
 const rWpmEl = document.getElementById('rWpm');
+const rScoreEl = document.getElementById('rScore');
 const rTimeEl = document.getElementById('rTime');
 const againBtn = document.getElementById('againBtn');
 const backBtn = document.getElementById('backBtn');
@@ -297,12 +300,20 @@ function applyPreset(id){
   lengthEl.value = String(p.length);
 }
 
+function calcScore(acc, wpm){
+  const a = Math.max(0, Math.min(1, (acc||0)/100));
+  const s = (wpm||0) * Math.pow(a, 3);
+  return Math.max(0, Math.floor(s));
+}
+
 function renderStats(){
   const recent = stats.recent.slice(0,10);
   const acc = mean(recent.map(r=>r.acc));
   const wpm = mean(recent.map(r=>r.wpm));
+  const score = mean(recent.map(r=>r.score).filter(x => typeof x === 'number'));
   accEl.textContent = acc==null? '-' : Math.round(acc).toString();
   wpmEl.textContent = wpm==null? '-' : Math.round(wpm).toString();
+  scoreEl.textContent = score==null? '-' : Math.round(score).toString();
   sessionsEl.textContent = String(stats.sessions||0);
 
   const today = yyyymmdd();
@@ -345,29 +356,46 @@ function highlightKey(letter){
 // game state
 let game = null;
 
+function missKeyFor(mode, item){
+  if(mode==='kana') return `kana:${item.jp}`;
+  if(mode==='alpha') return `alpha:${String(item)}`;
+  if(mode==='romaji') return `romaji:${String(item.en)}`;
+  return 'x';
+}
+
+function weightedPick(arr, mode){
+  // stats.missMap に基づいて「にがて」を少し多めに出す
+  const weights = arr.map(item => {
+    const key = missKeyFor(mode, item);
+    const m = Number(stats.missMap?.[key] || 0);
+    return 1 + Math.min(10, m) * 0.6; // 上げすぎない
+  });
+  const sum = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random() * sum;
+  for(let i=0;i<arr.length;i++){
+    r -= weights[i];
+    if(r <= 0) return arr[i];
+  }
+  return arr[arr.length-1];
+}
+
 function buildQueue(mode, level, n){
   const queue=[];
-  const pick=(arr)=>arr[Math.floor(Math.random()*arr.length)];
 
   if(mode==='kana'){
     const arr = KANA_TABLE[level] || KANA_TABLE.vowels;
-    for(let i=0;i<n;i++) queue.push(pick(arr));
+    for(let i=0;i<n;i++) queue.push(weightedPick(arr, 'kana'));
     return queue; // {jp, ro}
   }
   if(mode==='alpha'){
     const arr = ALPHA_TABLE[level] || ALPHA_TABLE.az;
-    for(let i=0;i<n;i++) queue.push(pick(arr));
+    for(let i=0;i<n;i++) queue.push(weightedPick(arr, 'alpha'));
     return queue; // 'A'
   }
   if(mode==='romaji'){
-    const arr = level==='sentences' ? ROMAJI_SENTENCES : ROMAJI_WORDS;
-    for(let i=0;i<n;i++){
-      const item = pick(arr);
-      queue.push({
-        ...item,
-        variants: romajiVariants(item.en),
-      });
-    }
+    const base = (level==='sentences' ? ROMAJI_SENTENCES : ROMAJI_WORDS)
+      .map(item => ({ ...item, variants: romajiVariants(item.en) }));
+    for(let i=0;i<n;i++) queue.push(weightedPick(base, 'romaji'));
     return queue; // {en, ja, variants}
   }
   return queue;
@@ -501,9 +529,19 @@ function nextPrompt(){
   else highlightKey(null);
 }
 
+function recordMiss(mode, item){
+  try{
+    const key = missKeyFor(mode, item);
+    stats.missMap = stats.missMap || {};
+    stats.missMap[key] = Number(stats.missMap[key] || 0) + 1;
+    saveStats(stats);
+  }catch{}
+}
+
 function missAdvance(showCorrectText){
   if(!game) return;
   game.miss++;
+  recordMiss(game.mode, currentItem());
   sfxMiss();
   missEl.textContent = String(game.miss);
 
@@ -527,6 +565,7 @@ function missAdvance(showCorrectText){
 function romajiMissLock(){
   if(!game) return;
   game.miss++;
+  recordMiss(game.mode, currentItem());
   sfxMiss();
   missEl.textContent = String(game.miss);
   hintEl.textContent = 'まちがい！';
@@ -570,7 +609,11 @@ function accept(forceOk = null){
   }
 
   if(ok) { game.correct++; sfxOk(); }
-  else { game.miss++; sfxMiss(); }
+  else {
+    game.miss++;
+    recordMiss(game.mode, item);
+    sfxMiss();
+  }
 
   typeInput.value='';
   game.idx++;
@@ -586,14 +629,16 @@ function endGame(){
   // WPM: (chars/5)/minutes
   const minutes = elapsedSec / 60;
   const wpm = minutes > 0 ? (game.typedChars/5) / minutes : 0;
+  const score = calcScore(acc, wpm);
 
   rAccEl.textContent = String(Math.round(acc));
   rWpmEl.textContent = String(Math.round(wpm));
+  rScoreEl.textContent = String(score);
   rTimeEl.textContent = String(elapsedSec);
 
   // save stats
   stats.sessions = (stats.sessions||0) + 1;
-  stats.recent.unshift({ acc, wpm, mode: game.mode, level: game.level, at: Date.now() });
+  stats.recent.unshift({ acc, wpm, score, mode: game.mode, level: game.level, at: Date.now() });
   stats.recent = stats.recent.slice(0, 20);
   const today = yyyymmdd();
   stats.daily = stats.daily || {};

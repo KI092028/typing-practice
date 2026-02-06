@@ -74,7 +74,7 @@ button.danger:hover{background:rgba(255,106,122,.18);}
 
 #resultCard{margin-top:14px;}
 h2{margin:0 0 12px 0;}
-.resultGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.resultGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 @media(max-width:860px){.resultGrid{grid-template-columns:1fr;}}
 
 .keyboard{margin-top:14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);padding:12px;background:rgba(0,0,0,.16);}
