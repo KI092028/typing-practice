@@ -199,6 +199,7 @@ const modeEl = document.getElementById('mode');
 const levelEl = document.getElementById('level');
 const lengthEl = document.getElementById('length');
 const soundToggleEl = document.getElementById('soundToggle');
+const presetBtns = document.querySelectorAll('.presetBtn');
 const startBtn = document.getElementById('startBtn');
 const resetStatsBtn = document.getElementById('resetStatsBtn');
 
@@ -275,6 +276,25 @@ function setLevels(){
     opt.textContent=lv.name;
     levelEl.appendChild(opt);
   }
+}
+
+const PRESETS = {
+  // Phase1: 小1〜小6（句読点なし方針）
+  g1: { mode: 'kana', level: 'vowels', length: 20 },
+  g2: { mode: 'kana', level: 'ka', length: 20 },
+  g3: { mode: 'kana', level: 'sa', length: 20 },
+  g4: { mode: 'kana', level: 'ta', length: 20 },
+  g5: { mode: 'kana', level: 'yoon', length: 20 },
+  g6: { mode: 'romaji', level: 'sentences', length: 10 },
+};
+
+function applyPreset(id){
+  const p = PRESETS[id];
+  if(!p) return;
+  modeEl.value = p.mode;
+  setLevels();
+  levelEl.value = p.level;
+  lengthEl.value = String(p.length);
 }
 
 function renderStats(){
@@ -599,6 +619,12 @@ function stopGame(){
 // wiring
 modeEl.addEventListener('change', () => {
   setLevels();
+});
+
+presetBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    applyPreset(btn.dataset.preset);
+  });
 });
 
 startBtn.addEventListener('click', startGame);
