@@ -10,14 +10,18 @@ const MODES = {
     levels: [
       { id: 'vowels', name: '母音（a i u e o）' },
       { id: 'ka', name: 'か行（ka ki ku ke ko）' },
-      { id: 'sa', name: 'さ行（sa shi su se so）' },
-      { id: 'ta', name: 'た行（ta chi tsu te to）' },
+      { id: 'sa', name: 'さ行（sa shi/si su se so）' },
+      { id: 'ta', name: 'た行（ta chi/ti tsu/tu te to）' },
       { id: 'na', name: 'な行（na ni nu ne no）' },
-      { id: 'ha', name: 'は行（ha hi fu he ho）' },
+      { id: 'ha', name: 'は行（ha hi fu/hu he ho）' },
       { id: 'ma', name: 'ま行（ma mi mu me mo）' },
       { id: 'ya', name: 'や行（ya yu yo）' },
       { id: 'ra', name: 'ら行（ra ri ru re ro）' },
-      { id: 'wa', name: 'わ行（wa wo n）' },
+      { id: 'wa', name: 'わ行（wa wo/o n）' },
+      { id: 'dakuten', name: '濁音（が/ざ/だ/ば）' },
+      { id: 'handakuten', name: '半濁音（ぱ行）' },
+      { id: 'yoon', name: '拗音（きゃ/しゃ/ちゃ…）' },
+      { id: 'sokuon', name: '促音（っ + か/さ/た/ぱ…）' },
     ],
   },
   alpha: {
@@ -68,6 +72,44 @@ const KANA_TABLE = {
   ],
   wa: [
     { jp: 'わ', ro: ['wa'] }, { jp: 'を', ro: ['wo','o'] }, { jp: 'ん', ro: ['n'] },
+  ],
+
+  // 濁音（入力は広めに許容、表示は学校表記寄り）
+  dakuten: [
+    { jp: 'が', ro: ['ga'] }, { jp: 'ぎ', ro: ['gi'] }, { jp: 'ぐ', ro: ['gu'] }, { jp: 'げ', ro: ['ge'] }, { jp: 'ご', ro: ['go'] },
+    { jp: 'ざ', ro: ['za'] }, { jp: 'じ', ro: ['ji','zi'] }, { jp: 'ず', ro: ['zu'] }, { jp: 'ぜ', ro: ['ze'] }, { jp: 'ぞ', ro: ['zo'] },
+    { jp: 'だ', ro: ['da'] }, { jp: 'ぢ', ro: ['ji','di'] }, { jp: 'づ', ro: ['zu','du'] }, { jp: 'で', ro: ['de'] }, { jp: 'ど', ro: ['do'] },
+    { jp: 'ば', ro: ['ba'] }, { jp: 'び', ro: ['bi'] }, { jp: 'ぶ', ro: ['bu'] }, { jp: 'べ', ro: ['be'] }, { jp: 'ぼ', ro: ['bo'] },
+  ],
+
+  // 半濁音
+  handakuten: [
+    { jp: 'ぱ', ro: ['pa'] }, { jp: 'ぴ', ro: ['pi'] }, { jp: 'ぷ', ro: ['pu'] }, { jp: 'ぺ', ro: ['pe'] }, { jp: 'ぽ', ro: ['po'] },
+  ],
+
+  // 拗音（小書きゃゅょ）
+  yoon: [
+    { jp: 'きゃ', ro: ['kya'] }, { jp: 'きゅ', ro: ['kyu'] }, { jp: 'きょ', ro: ['kyo'] },
+    { jp: 'しゃ', ro: ['sha','sya'] }, { jp: 'しゅ', ro: ['shu','syu'] }, { jp: 'しょ', ro: ['sho','syo'] },
+    { jp: 'ちゃ', ro: ['cha','tya'] }, { jp: 'ちゅ', ro: ['chu','tyu'] }, { jp: 'ちょ', ro: ['cho','tyo'] },
+    { jp: 'にゃ', ro: ['nya'] }, { jp: 'にゅ', ro: ['nyu'] }, { jp: 'にょ', ro: ['nyo'] },
+    { jp: 'ひゃ', ro: ['hya'] }, { jp: 'ひゅ', ro: ['hyu'] }, { jp: 'ひょ', ro: ['hyo'] },
+    { jp: 'みゃ', ro: ['mya'] }, { jp: 'みゅ', ro: ['myu'] }, { jp: 'みょ', ro: ['myo'] },
+    { jp: 'りゃ', ro: ['rya'] }, { jp: 'りゅ', ro: ['ryu'] }, { jp: 'りょ', ro: ['ryo'] },
+    // 濁音拗音
+    { jp: 'ぎゃ', ro: ['gya'] }, { jp: 'ぎゅ', ro: ['gyu'] }, { jp: 'ぎょ', ro: ['gyo'] },
+    { jp: 'じゃ', ro: ['ja','zya','jya'] }, { jp: 'じゅ', ro: ['ju','zyu','jyu'] }, { jp: 'じょ', ro: ['jo','zyo','jyo'] },
+    { jp: 'びゃ', ro: ['bya'] }, { jp: 'びゅ', ro: ['byu'] }, { jp: 'びょ', ro: ['byo'] },
+    { jp: 'ぴゃ', ro: ['pya'] }, { jp: 'ぴゅ', ro: ['pyu'] }, { jp: 'ぴょ', ro: ['pyo'] },
+  ],
+
+  // 促音（小書きっ + 子音重ね）
+  // 例：っか -> kka
+  sokuon: [
+    { jp: 'っか', ro: ['kka'] }, { jp: 'っき', ro: ['kki'] }, { jp: 'っく', ro: ['kku'] }, { jp: 'っけ', ro: ['kke'] }, { jp: 'っこ', ro: ['kko'] },
+    { jp: 'っさ', ro: ['ssa'] }, { jp: 'っし', ro: ['sshi','ssi'] }, { jp: 'っす', ro: ['ssu'] }, { jp: 'っせ', ro: ['sse'] }, { jp: 'っそ', ro: ['sso'] },
+    { jp: 'った', ro: ['tta'] }, { jp: 'っち', ro: ['cchi','tti'] }, { jp: 'っつ', ro: ['ttsu','ttu'] }, { jp: 'って', ro: ['tte'] }, { jp: 'っと', ro: ['tto'] },
+    { jp: 'っぱ', ro: ['ppa'] }, { jp: 'っぴ', ro: ['ppi'] }, { jp: 'っぷ', ro: ['ppu'] }, { jp: 'っぺ', ro: ['ppe'] }, { jp: 'っぽ', ro: ['ppo'] },
   ],
 };
 
