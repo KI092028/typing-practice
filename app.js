@@ -136,6 +136,22 @@ function normalizeInput(s){
     .replace(/\u3000/g, ' ');
 }
 
+function romajiVariants(base){
+  // 長音は「広め」許容：ou↔oo / ei↔ee を追加
+  // （全部を許容すると教材として崩れるので、まずは代表的な揺れに留める）
+  const b = String(base);
+  const set = new Set([b]);
+  const add = (s) => { if (s && s !== b) set.add(s); };
+
+  // one-step replacements
+  add(b.replaceAll('ou', 'oo'));
+  add(b.replaceAll('oo', 'ou'));
+  add(b.replaceAll('ei', 'ee'));
+  add(b.replaceAll('ee', 'ei'));
+
+  return [...set];
+}
+
 // DOM
 const modeEl = document.getElementById('mode');
 const levelEl = document.getElementById('level');
@@ -283,8 +299,14 @@ function buildQueue(mode, level, n){
   }
   if(mode==='romaji'){
     const arr = level==='sentences' ? ROMAJI_SENTENCES : ROMAJI_WORDS;
-    for(let i=0;i<n;i++) queue.push(pick(arr));
-    return queue; // {en, ja}
+    for(let i=0;i<n;i++){
+      const item = pick(arr);
+      queue.push({
+        ...item,
+        variants: romajiVariants(item.en),
+      });
+    }
+    return queue; // {en, ja, variants}
   }
   return queue;
 }
@@ -547,8 +569,8 @@ typeInput.addEventListener('keydown', (ev) => {
   // readOnlyなので、ここで手動入力制御
   const item = currentItem();
   if(!item) return;
-  const expectedRaw = String(item.en);
-  const expected = expectedRaw; // includes spaces
+  const primary = String(item.en);
+  const variants = Array.isArray(item.variants) && item.variants.length ? item.variants.map(String) : [primary];
 
   const key = ev.key;
 
@@ -559,7 +581,8 @@ typeInput.addEventListener('keydown', (ev) => {
     ev.preventDefault();
     game.romajiTyped = game.romajiTyped.slice(0, -1);
     typeInput.value = game.romajiTyped;
-    renderRomajiPromptProgress(expected, game.romajiTyped);
+    // show progress against primary display
+    renderRomajiPromptProgress(primary, game.romajiTyped);
     return;
   }
 
@@ -572,30 +595,39 @@ typeInput.addEventListener('keydown', (ev) => {
   // normalize (fullwidth etc.)
   const ch = normalizeInput(key).toLowerCase();
 
-  // auto-skip spaces (option B)
-  while(expected[game.romajiTyped.length] === ' ') {
+  // candidates by prefix
+  const prefix = game.romajiTyped;
+  let candidates = variants.filter(v => v.startsWith(prefix));
+  if(!candidates.length) candidates = variants;
+
+  // auto-skip spaces (option B): skip only if all candidates have space next
+  while (candidates.length && candidates.every(v => v[prefix.length] === ' ')) {
     game.romajiTyped += ' ';
+    candidates = candidates.filter(v => v.startsWith(game.romajiTyped));
   }
 
-  const next = expected[game.romajiTyped.length];
+  const pos = game.romajiTyped.length;
+  const nextChars = new Set(candidates.map(v => v[pos]).filter(Boolean));
 
   ev.preventDefault();
 
-  if(!next) return;
-  if(ch === next){
+  if(nextChars.size === 0) return;
+  if(nextChars.has(ch)){
     game.romajiTyped += ch;
 
-    // also auto-skip spaces after accepting a char
-    while(expected[game.romajiTyped.length] === ' ') {
+    // after accepting a char, auto-skip spaces again (if all candidates agree)
+    candidates = candidates.filter(v => v.startsWith(game.romajiTyped));
+    while (candidates.length && candidates.every(v => v[game.romajiTyped.length] === ' ')) {
       game.romajiTyped += ' ';
+      candidates = candidates.filter(v => v.startsWith(game.romajiTyped));
     }
 
     typeInput.value = game.romajiTyped;
-    renderRomajiPromptProgress(expected, game.romajiTyped);
+    renderRomajiPromptProgress(primary, game.romajiTyped);
 
-    if(game.romajiTyped.length === expected.length){
-      // mark as correct and advance
-      typeInput.value = expected;
+    // completion if any candidate fully matched
+    if(candidates.some(v => v === game.romajiTyped)){
+      typeInput.value = game.romajiTyped;
       accept(true);
     }
     return;
