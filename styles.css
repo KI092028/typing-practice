@@ -1,0 +1,82 @@
+:root{
+  --bg:#08121f;
+  --card:#0f1d35;
+  --text:#eef2ff;
+  --muted:#b9c4e6;
+  --border:rgba(255,255,255,.1);
+  --primary:#6aa6ff;
+  --danger:#ff6a7a;
+  --radius:16px;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --font:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--text);
+  background: radial-gradient(1200px 700px at 20% 0%, #1b2a5a 0%, transparent 55%),
+              radial-gradient(900px 600px at 90% 20%, #2a1b5a 0%, transparent 60%),
+              var(--bg);
+}
+.container{max-width:1050px;margin:0 auto;padding:18px;}
+
+.topRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+h1{margin:0;font-size:28px;}
+.badge{padding:8px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted);font-size:13px;}
+
+.card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
+header .card{margin-top:14px;}
+
+.field{display:grid;gap:6px;}
+.field.inline{min-width:220px;}
+.switch{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;user-select:none;}
+.switch input{width:18px;height:18px;}
+label{color:var(--muted);font-size:13px;}
+select,input{padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.24);color:var(--text);outline:none;}
+select:focus,input:focus{border-color:rgba(106,166,255,.55);box-shadow:0 0 0 4px rgba(106,166,255,.12);}
+
+.courseRow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;}
+button:hover{background:rgba(255,255,255,.1);}
+button.primary{border-color:rgba(106,166,255,.55);background:rgba(106,166,255,.15);}
+button.primary:hover{background:rgba(106,166,255,.22);}
+button.danger{border-color:rgba(255,106,122,.5);background:rgba(255,106,122,.12);}
+button.danger:hover{background:rgba(255,106,122,.18);}
+
+.statsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;}
+.stat{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;}
+.stat .k{color:var(--muted);font-size:12px;}
+.stat .v{font-size:22px;font-weight:800;margin-top:4px;}
+.muted{color:var(--muted);font-size:12px;margin-top:10px;}
+
+#gameCard{margin-top:14px;}
+.gameTop{display:grid;grid-template-columns:1fr 180px;gap:14px;align-items:start;}
+@media(max-width:860px){.gameTop{grid-template-columns:1fr;}}
+.promptLabel{color:var(--muted);font-size:12px;}
+.prompt{font-size:30px;font-weight:900;margin-top:6px;letter-spacing:.02em;}
+.prompt .done{background:rgba(255, 80, 96, .55);color:#fff;border-radius:8px;padding:0 4px;}
+.meaning{color:var(--muted);font-size:16px;margin-top:10px;min-height:1.4em;}
+.hint{color:var(--muted);font-size:18px;margin-top:8px;min-height:1.6em;line-height:1.4;}
+.hint.wrong{color:#ffb3bc;}
+.hint .done{background:rgba(255, 80, 96, .55);color:#fff;border-radius:6px;padding:0 2px;}
+.hint .sep{opacity:.7;}
+.scoreWrap{display:grid;gap:6px;justify-items:end;}
+.scoreWrap .mini{color:var(--muted);font-size:12px;}
+.scoreWrap .big{font-size:24px;font-weight:900;}
+
+.inputRow{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;}
+#typeInput{flex:1;min-width:240px;font-size:18px;}
+
+#resultCard{margin-top:14px;}
+h2{margin:0 0 12px 0;}
+.resultGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:860px){.resultGrid{grid-template-columns:1fr;}}
+
+.keyboard{margin-top:14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);padding:12px;background:rgba(0,0,0,.16);}
+.keyRow{display:flex;gap:8px;justify-content:center;margin-top:8px;}
+.keyRow:first-child{margin-top:0;}
+.key{min-width:34px;padding:10px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);text-align:center;font-weight:700;}
+.key.active{border-color:rgba(106,166,255,.75);box-shadow:0 0 0 4px rgba(106,166,255,.12);background:rgba(106,166,255,.16);}
+.key.wide{min-width:64px;}

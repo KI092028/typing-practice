@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>タイピングれんしゅう</title>
+  <meta name="description" content="小学生向けタイピング練習（ひらがな→アルファベット→ローマ字）" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="container">
+    <div class="topRow">
+      <h1>タイピングれんしゅう</h1>
+      <div class="badge" id="streakBadge" title="きょうのれんしゅう">きょう: 0</div>
+    </div>
+
+    <section class="card" aria-label="コース選択">
+      <div class="courseRow">
+        <div class="field inline">
+          <label for="mode">コース</label>
+          <select id="mode">
+            <option value="kana">① ひらがな（ローマ字でうつ）</option>
+            <option value="alpha">② アルファベット（A〜Z）</option>
+            <option value="romaji">③ ローマ字（たんご/ぶんしょう）</option>
+          </select>
+        </div>
+        <div class="field inline">
+          <label for="level">レベル</label>
+          <select id="level"></select>
+        </div>
+        <div class="field inline">
+          <label for="length">もんだい数</label>
+          <select id="length">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+        <div class="field inline">
+          <label class="switch">
+            <input id="soundToggle" type="checkbox" checked />
+            <span>おと</span>
+          </label>
+        </div>
+        <div class="actions">
+          <button class="primary" id="startBtn" type="button">スタート</button>
+          <button id="resetStatsBtn" class="danger" type="button">きろくをリセット</button>
+        </div>
+      </div>
+
+      <div class="statsRow" aria-label="きろく">
+        <div class="stat"><div class="k">さいきんのせいかいりつ</div><div class="v"><span id="acc">-</span>%</div></div>
+        <div class="stat"><div class="k">さいきんのWPM</div><div class="v"><span id="wpm">-</span></div></div>
+        <div class="stat"><div class="k">ごうけいれんしゅう</div><div class="v"><span id="sessions">0</span> かい</div></div>
+      </div>
+      <div class="muted">※きろくはこのブラウザ（localStorage）にほぞんされます</div>
+    </section>
+  </header>
+
+  <main class="container">
+    <section class="card" id="gameCard" aria-label="れんしゅう" hidden>
+      <div class="gameTop">
+        <div class="promptWrap">
+          <div class="promptLabel">もんだい</div>
+          <div class="prompt" id="prompt">-</div>
+          <div class="meaning" id="meaning"></div>
+          <div class="hint" id="hint"></div>
+        </div>
+        <div class="scoreWrap">
+          <div class="mini">のこり</div>
+          <div class="big" id="remaining">0</div>
+          <div class="mini">せいかい</div>
+          <div class="big" id="correct">0</div>
+          <div class="mini">ミス</div>
+          <div class="big" id="miss">0</div>
+        </div>
+      </div>
+
+      <div class="inputRow">
+        <input id="typeInput" type="text" inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ここにうつ" />
+        <button id="giveUpBtn" type="button">やめる</button>
+      </div>
+
+      <div class="keyboard" id="keyboard" aria-label="キーボード" hidden>
+        <div class="keyRow" data-row="1"></div>
+        <div class="keyRow" data-row="2"></div>
+        <div class="keyRow" data-row="3"></div>
+      </div>
+    </section>
+
+    <section class="card" id="resultCard" aria-label="けっか" hidden>
+      <h2>けっか</h2>
+      <div class="resultGrid">
+        <div class="stat"><div class="k">せいかいりつ</div><div class="v"><span id="rAcc">0</span>%</div></div>
+        <div class="stat"><div class="k">WPM</div><div class="v"><span id="rWpm">0</span></div></div>
+        <div class="stat"><div class="k">じかん</div><div class="v"><span id="rTime">0</span>s</div></div>
+      </div>
+      <div class="actions">
+        <button class="primary" id="againBtn" type="button">もういっかい</button>
+        <button id="backBtn" type="button">もどる</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
