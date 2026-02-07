@@ -23,7 +23,9 @@ body{
 
 .topRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 h1{margin:0;font-size:28px;}
+.topActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .badge{padding:8px 10px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted);font-size:13px;}
+.chip{border-radius:999px;padding:8px 10px;font-size:13px;}
 
 .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
 header .card{margin-top:14px;}
@@ -83,3 +85,12 @@ h2{margin:0 0 12px 0;}
 .key{min-width:34px;padding:10px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);text-align:center;font-weight:700;}
 .key.active{border-color:rgba(106,166,255,.75);box-shadow:0 0 0 4px rgba(106,166,255,.12);background:rgba(106,166,255,.16);}
 .key.wide{min-width:64px;}
+
+.badgesGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
+@media(max-width:520px){.badgesGrid{grid-template-columns:1fr;}}
+.badgeCard{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);border-radius:14px;padding:10px;}
+.badgeCard.locked{opacity:.5;filter:grayscale(1);}
+.badgeName{font-weight:800;}
+.badgeDesc{color:var(--muted);font-size:12px;margin-top:4px;}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);padding:10px 12px;border-radius:14px;backdrop-filter: blur(8px);max-width:min(92vw,520px);display:none;}
+.toast.show{display:block;}

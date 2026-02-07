@@ -11,7 +11,10 @@
   <header class="container">
     <div class="topRow">
       <h1>タイピングの森</h1>
-      <div class="badge" id="streakBadge" title="きょうのれんしゅう">きょう: 0</div>
+      <div class="topActions">
+        <button id="badgesBtn" type="button" class="chip">バッジ <span id="badgeCount">0</span></button>
+        <div class="badge" id="streakBadge" title="きょうのれんしゅう">きょう: 0</div>
+      </div>
     </div>
 
     <section class="card" aria-label="コース選択">
@@ -115,6 +118,16 @@
       </div>
     </section>
   </main>
+
+  <dialog id="badgesDialog">
+    <form method="dialog" class="dialog">
+      <h3>バッジ</h3>
+      <div id="badgesGrid" class="badgesGrid"></div>
+      <div class="actions">
+        <button value="ok" type="submit">とじる</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="./app.js"></script>
 </body>

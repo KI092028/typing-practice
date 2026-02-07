@@ -153,15 +153,16 @@ const ROMAJI_SENTENCES = [
 function loadStats(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return { sessions:0, recent:[] , daily:{}, missMap:{} };
+    if(!raw) return { sessions:0, recent:[] , daily:{}, missMap:{}, badges:{} };
     const s = JSON.parse(raw);
     return {
       sessions: Number(s.sessions)||0,
       recent: Array.isArray(s.recent)? s.recent.slice(0,20):[],
       daily: s.daily && typeof s.daily==='object'? s.daily : {},
       missMap: s.missMap && typeof s.missMap==='object' ? s.missMap : {},
+      badges: s.badges && typeof s.badges==='object' ? s.badges : {},
     };
-  }catch{ return { sessions:0, recent:[], daily:{}, missMap:{} }; }
+  }catch{ return { sessions:0, recent:[], daily:{}, missMap:{}, badges:{} }; }
 }
 function saveStats(stats){ localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); }
 function yyyymmdd(){
@@ -227,6 +228,11 @@ const rScoreEl = document.getElementById('rScore');
 const rTimeEl = document.getElementById('rTime');
 const againBtn = document.getElementById('againBtn');
 const backBtn = document.getElementById('backBtn');
+
+const badgesBtn = document.getElementById('badgesBtn');
+const badgeCountEl = document.getElementById('badgeCount');
+const badgesDialog = document.getElementById('badgesDialog');
+const badgesGrid = document.getElementById('badgesGrid');
 
 const keyboard = document.getElementById('keyboard');
 
@@ -306,6 +312,79 @@ function calcScore(acc, wpm){
   return Math.max(0, Math.floor(s));
 }
 
+function consecutiveDaysCount(dailyMap){
+  // dailyMap: {'YYYY-MM-DD': count}
+  const keys = Object.keys(dailyMap || {}).filter(k => Number(dailyMap[k]||0) > 0).sort();
+  if(!keys.length) return 0;
+  const toDate = (s) => new Date(s + 'T00:00:00');
+  let best = 1;
+  let cur = 1;
+  for(let i=1;i<keys.length;i++){
+    const prev = toDate(keys[i-1]);
+    const now = toDate(keys[i]);
+    const diff = (now - prev) / 86400000;
+    if(diff === 1){
+      cur += 1;
+      best = Math.max(best, cur);
+    } else {
+      cur = 1;
+    }
+  }
+  // if today is not included, streak might be lower; but for badges, best is fine.
+  return best;
+}
+
+const BADGES = [
+  { id:'first_play', name:'はじめての一歩', desc:'はじめて れんしゅうした' },
+  { id:'acc95', name:'せいかく名人', desc:'せいかいりつ 95% いじょう' },
+  { id:'acc95_3', name:'3れんしょう', desc:'せいかいりつ 95% いじょうを 3かい れんぞく' },
+  { id:'days2', name:'まいにち', desc:'2にち れんぞくで れんしゅう' },
+  { id:'vowels_master', name:'母音マスター', desc:'母音を 95% いじょうで クリア' },
+  { id:'yoon_clear', name:'拗音クリア', desc:'拗音を 95% いじょうで クリア' },
+  { id:'romaji_explorer', name:'ローマ字たんけん', desc:'ローマ字を さいごまで うちきった' },
+];
+
+function hasBadge(id){
+  return !!stats.badges?.[id];
+}
+
+function grantBadge(id){
+  stats.badges = stats.badges || {};
+  if(stats.badges[id]) return false;
+  stats.badges[id] = { at: Date.now() };
+  saveStats(stats);
+  return true;
+}
+
+function renderBadges(){
+  const unlocked = Object.keys(stats.badges||{}).length;
+  badgeCountEl.textContent = String(unlocked);
+  if(!badgesGrid) return;
+  badgesGrid.innerHTML = '';
+  for(const b of BADGES){
+    const unlocked = hasBadge(b.id);
+    const div = document.createElement('div');
+    div.className = 'badgeCard' + (unlocked ? '' : ' locked');
+    div.innerHTML = `<div class="badgeName">${b.name}${unlocked ? '' : '（？）'}</div><div class="badgeDesc">${b.desc}</div>`;
+    badgesGrid.appendChild(div);
+  }
+}
+
+let toastTimer = null;
+function showToast(text){
+  let el = document.getElementById('toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.className = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
 function renderStats(){
   const recent = stats.recent.slice(0,10);
   const acc = mean(recent.map(r=>r.acc));
@@ -319,6 +398,8 @@ function renderStats(){
   const today = yyyymmdd();
   const todayCount = Number(stats.daily?.[today]||0);
   streakBadge.textContent = `きょう: ${todayCount}`;
+
+  renderBadges();
 }
 
 function showKeyboardForMode(mode){
@@ -644,7 +725,26 @@ function endGame(){
   stats.daily = stats.daily || {};
   stats.daily[today] = Number(stats.daily[today]||0) + 1;
   saveStats(stats);
+
+  // --- badges ---
+  const newly = [];
+  if(stats.sessions === 1) if (grantBadge('first_play')) newly.push('はじめての一歩');
+  if(acc >= 95) if (grantBadge('acc95')) newly.push('せいかく名人');
+
+  const recentAcc95 = stats.recent.slice(0,3).every(r => (r.acc||0) >= 95);
+  if(stats.recent.length >= 3 && recentAcc95) if (grantBadge('acc95_3')) newly.push('3れんしょう');
+
+  if(consecutiveDaysCount(stats.daily) >= 2) if (grantBadge('days2')) newly.push('まいにち');
+
+  if(game.mode === 'kana' && game.level === 'vowels' && acc >= 95) if (grantBadge('vowels_master')) newly.push('母音マスター');
+  if(game.mode === 'kana' && game.level === 'yoon' && acc >= 95) if (grantBadge('yoon_clear')) newly.push('拗音クリア');
+  if(game.mode === 'romaji') if (grantBadge('romaji_explorer')) newly.push('ローマ字たんけん');
+
+  saveStats(stats);
   renderStats();
+  if(newly.length){
+    showToast(`バッジGET！ ${newly[0]}`);
+  }
 
   gameCard.hidden = true;
   resultCard.hidden = false;
@@ -845,6 +945,11 @@ resetStatsBtn.addEventListener('click', () => {
   localStorage.removeItem(STORAGE_KEY);
   stats = loadStats();
   renderStats();
+});
+
+badgesBtn?.addEventListener('click', () => {
+  renderBadges();
+  badgesDialog?.showModal();
 });
 
 soundToggleEl.checked = !!settings.sound;
