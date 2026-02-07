@@ -201,6 +201,7 @@ const modeEl = document.getElementById('mode');
 const levelEl = document.getElementById('level');
 const lengthEl = document.getElementById('length');
 const soundToggleEl = document.getElementById('soundToggle');
+const setupCard = document.getElementById('setupCard');
 const presetBtns = document.querySelectorAll('.presetBtn');
 const startBtn = document.getElementById('startBtn');
 const resetStatsBtn = document.getElementById('resetStatsBtn');
@@ -272,8 +273,8 @@ function beep(freq, durMs, type='sine', gain=0.06){
   o.start(now);
   o.stop(now + durMs/1000);
 }
-function sfxOk(){ beep(880, 80, 'triangle', 0.07); }
-function sfxMiss(){ beep(220, 120, 'sawtooth', 0.05); }
+function sfxOk(){ beep(880, 45, 'triangle', 0.06); }
+function sfxMiss(){ beep(220, 90, 'sawtooth', 0.05); }
 
 function setLevels(){
   const mode = modeEl.value;
@@ -488,6 +489,12 @@ function startGame(){
   const n = Number(lengthEl.value)||20;
   const queue = buildQueue(mode, level, n);
 
+  // prewarm audio (avoid first-play lag)
+  if(settings.sound){
+    try{ ctx().resume(); }catch{}
+    try{ beep(1, 1, 'sine', 0.0001); }catch{}
+  }
+
   game = {
     mode, level,
     total: queue.length,
@@ -501,6 +508,7 @@ function startGame(){
   };
 
   resultCard.hidden = true;
+  setupCard && (setupCard.hidden = true);
   gameCard.hidden = false;
   showKeyboardForMode(mode);
 
@@ -757,6 +765,7 @@ function stopGame(){
     game = null;
     gameCard.hidden = true;
     resultCard.hidden = true;
+    setupCard && (setupCard.hidden = false);
     highlightKey(null);
   }
 }
@@ -935,9 +944,13 @@ typeInput.addEventListener('input', () => {
 });
 
 giveUpBtn.addEventListener('click', stopGame);
-againBtn.addEventListener('click', startGame);
+againBtn.addEventListener('click', () => {
+  // keep setup hidden, restart immediately
+  startGame();
+});
 backBtn.addEventListener('click', () => {
   resultCard.hidden = true;
+  setupCard && (setupCard.hidden = false);
 });
 
 resetStatsBtn.addEventListener('click', () => {
