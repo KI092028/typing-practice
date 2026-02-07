@@ -333,9 +333,9 @@ const PRESETS = {
   // Phase1: 小1〜小6（句読点なし方針）
   g1: { mode: 'kana', level: 'vowels', length: 20 },
   g2: { mode: 'kana', level: 'ka', length: 20 },
-  g3: { mode: 'kana', level: 'sa', length: 20 },
-  g4: { mode: 'kana', level: 'ta', length: 20 },
-  g5: { mode: 'kana', level: 'yoon', length: 20 },
+  g3: { mode: 'kana', level: 'dakuten', length: 20 }, // 濁音
+  g4: { mode: 'kana', level: 'sokuon', length: 20 },  // 促音
+  g5: { mode: 'kana', level: 'chouon', length: 20 },  // 長音
   g6: { mode: 'romaji', level: 'sentences', length: 10 },
 };
 
@@ -487,11 +487,13 @@ function missKeyFor(mode, item){
 }
 
 function weightedPick(arr, mode){
-  // stats.missMap に基づいて「にがて」を少し多めに出す
+  // stats.missMap に基づいて「にがて」を優先的に出す
   const weights = arr.map(item => {
     const key = missKeyFor(mode, item);
     const m = Number(stats.missMap?.[key] || 0);
-    return 1 + Math.min(10, m) * 0.6; // 上げすぎない
+    // 重みを強化: ミス数が多いほど出やすくする (1 + m^1.5, max 50)
+    // 例: 1miss->2, 5miss->12, 10miss->32
+    return 1 + Math.min(50, Math.pow(m, 1.5));
   });
   const sum = weights.reduce((a,b)=>a+b,0);
   let r = Math.random() * sum;
