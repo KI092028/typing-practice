@@ -22,6 +22,7 @@ const MODES = {
       { id: 'handakuten', name: '半濁音（ぱ行）' },
       { id: 'yoon', name: '拗音（きゃ/しゃ/ちゃ…）' },
       { id: 'sokuon', name: '促音（っ + か/さ/た/ぱ…）' },
+      { id: 'chouon', name: '長音（おう/おお・えい/ええ）' },
     ],
   },
   alpha: {
@@ -111,6 +112,23 @@ const KANA_TABLE = {
     { jp: 'った', ro: ['tta'] }, { jp: 'っち', ro: ['cchi','tti'] }, { jp: 'っつ', ro: ['ttsu','ttu'] }, { jp: 'って', ro: ['tte'] }, { jp: 'っと', ro: ['tto'] },
     { jp: 'っぱ', ro: ['ppa'] }, { jp: 'っぴ', ro: ['ppi'] }, { jp: 'っぷ', ro: ['ppu'] }, { jp: 'っぺ', ro: ['ppe'] }, { jp: 'っぽ', ro: ['ppo'] },
   ],
+
+  // 長音（かな複合）: 入力は「広め」許容
+  // こう: kou/koo, えい: ei/ee など
+  chouon: [
+    { jp: 'こう', ro: ['kou','koo'] },
+    { jp: 'そう', ro: ['sou','soo'] },
+    { jp: 'とう', ro: ['tou','too'] },
+    { jp: 'のう', ro: ['nou','noo'] },
+    { jp: 'ほう', ro: ['hou','hoo'] },
+    { jp: 'きょう', ro: ['kyou','kyoo'] },
+    { jp: 'しょう', ro: ['shou','shoo','syou','syoo'] },
+    { jp: 'ちょう', ro: ['chou','choo','tyou','tyoo'] },
+    { jp: 'おおきい', ro: ['ookii'] },
+    { jp: 'おねえさん', ro: ['oneesan','oneisan'] },
+    { jp: 'えいが', ro: ['eiga','eega'] },
+    { jp: 'せんせい', ro: ['sensei','sensee'] },
+  ],
 };
 
 const ALPHA_TABLE = {
@@ -139,15 +157,38 @@ const ROMAJI_WORDS = [
   { en: 'hayai', ja: 'はやい' },
   { en: 'ookii', ja: 'おおきい' },
   { en: 'chiisai', ja: 'ちいさい' },
+
+  // 追加（長音・拗音・促音を含む）
+  { en: 'kyou', ja: 'きょう' },
+  { en: 'ashita', ja: 'あした' },
+  { en: 'otousan', ja: 'おとうさん' },
+  { en: 'okaasan', ja: 'おかあさん' },
+  { en: 'oneesan', ja: 'おねえさん' },
+  { en: 'oniisan', ja: 'おにいさん' },
+  { en: 'chikatetsu', ja: 'ちかてつ' },
+  { en: 'issho', ja: 'いっしょ' },
+  { en: 'zutto', ja: 'ずっと' },
+  { en: 'byouin', ja: 'びょういん' },
+  { en: 'shukudai', ja: 'しゅくだい' },
+  { en: 'ryokou', ja: 'りょこう' },
+  { en: 'eiga', ja: 'えいが' },
+  { en: 'kouen', ja: 'こうえん' },
+  { en: 'suugaku', ja: 'すうがく' },
+  { en: 'toukyou', ja: 'とうきょう' },
 ];
 
 const ROMAJI_SENTENCES = [
-  // 助詞「は」は学習目的で "ha" 表記に寄せる
+  // 助詞「は」は学習目的で "ha" 表記に寄せる（句読点なし方針）
   { en: 'watashi ha gakusei desu', ja: 'わたしは がくせい です' },
   { en: 'kyou ha tenki ga ii desu', ja: 'きょうは てんきが いい です' },
   { en: 'ashita ha gakkou e ikimasu', ja: 'あしたは がっこうへ いきます' },
   { en: 'hon o yomu no ga suki desu', ja: 'ほんを よむのが すきです' },
   { en: 'tomodachi to asobimasu', ja: 'ともだちと あそびます' },
+  { en: 'watashi ha toukyou e ikimasu', ja: 'わたしは とうきょうへ いきます' },
+  { en: 'kyou ha ryokou no junbi o shimasu', ja: 'きょうは りょこうの じゅんびを します' },
+  { en: 'ashita ha kouen de asobimasu', ja: 'あしたは こうえんで あそびます' },
+  { en: 'eiga o mi ni ikimasu', ja: 'えいがを みに いきます' },
+  { en: 'shukudai o yatte kara nemasu', ja: 'しゅくだいを やってから ねます' },
 ];
 
 function loadStats(){
