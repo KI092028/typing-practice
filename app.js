@@ -3,6 +3,7 @@
 
 const STORAGE_KEY = 'typingPractice:v1';
 const SETTINGS_KEY = 'typingPractice:settings:v1';
+const THEME_KEY = 'typingPractice:theme';
 
 const MODES = {
   kana: {
@@ -268,13 +269,21 @@ const rAccEl = document.getElementById('rAcc');
 const rWpmEl = document.getElementById('rWpm');
 const rScoreEl = document.getElementById('rScore');
 const rTimeEl = document.getElementById('rTime');
+const rAccChangeEl = document.getElementById('rAccChange');
+const rWpmChangeEl = document.getElementById('rWpmChange');
+const rScoreChangeEl = document.getElementById('rScoreChange');
 const againBtn = document.getElementById('againBtn');
 const backBtn = document.getElementById('backBtn');
 
 const badgesBtn = document.getElementById('badgesBtn');
 const badgeCountEl = document.getElementById('badgeCount');
+const badgeTotalEl = document.getElementById('badgeTotal');
 const badgesDialog = document.getElementById('badgesDialog');
 const badgesGrid = document.getElementById('badgesGrid');
+
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.querySelector('.theme-icon');
+const themeLabel = document.querySelector('.theme-label');
 
 const keyboard = document.getElementById('keyboard');
 
@@ -293,6 +302,33 @@ function saveSettings(settings){
 }
 
 let settings = loadSettings();
+
+// テーマ管理
+function getInitialTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === 'light' || saved === 'dark') return saved;
+  if (window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
+  return 'dark';
+}
+
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-mode');
+    themeIcon && (themeIcon.textContent = '☀️');
+    themeLabel && (themeLabel.textContent = 'ライト');
+  } else {
+    document.body.classList.remove('light-mode');
+    themeIcon && (themeIcon.textContent = '🌙');
+    themeLabel && (themeLabel.textContent = 'ダーク');
+  }
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+function toggleTheme() {
+  const current = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+  const next = current === 'light' ? 'dark' : 'light';
+  applyTheme(next);
+}
 
 // tiny sfx (WebAudio)
 let audioCtx = null;
@@ -377,13 +413,35 @@ function consecutiveDaysCount(dailyMap){
 }
 
 const BADGES = [
-  { id:'first_play', name:'はじめての一歩', desc:'はじめて れんしゅうした' },
-  { id:'acc95', name:'せいかく名人', desc:'せいかいりつ 95% いじょう' },
-  { id:'acc95_3', name:'3れんしょう', desc:'せいかいりつ 95% いじょうを 3かい れんぞく' },
-  { id:'days2', name:'まいにち', desc:'2にち れんぞくで れんしゅう' },
-  { id:'vowels_master', name:'母音マスター', desc:'母音を 95% いじょうで クリア' },
-  { id:'yoon_clear', name:'拗音クリア', desc:'拗音を 95% いじょうで クリア' },
-  { id:'romaji_explorer', name:'ローマ字たんけん', desc:'ローマ字を さいごまで うちきった' },
+  // 既存7種類
+  { id:'first_play', name:'はじめての一歩', desc:'はじめて れんしゅうした', icon:'🎯', category:'achievement' },
+  { id:'acc95', name:'せいかく名人', desc:'せいかいりつ 95% いじょう', icon:'🎖️', category:'accuracy' },
+  { id:'acc95_3', name:'3れんしょう', desc:'せいかいりつ 95% いじょうを 3かい れんぞく', icon:'🔥', category:'accuracy' },
+  { id:'days2', name:'まいにち', desc:'2にち れんぞくで れんしゅう', icon:'📅', category:'streak' },
+  { id:'vowels_master', name:'母音マスター', desc:'母音を 95% いじょうで クリア', icon:'⭐', category:'achievement' },
+  { id:'yoon_clear', name:'拗音クリア', desc:'拗音を 95% いじょうで クリア', icon:'✨', category:'achievement' },
+  { id:'romaji_explorer', name:'ローマ字たんけん', desc:'ローマ字を さいごまで うちきった', icon:'🗺️', category:'achievement' },
+
+  // 速度系 4種
+  { id:'wpm_20', name:'スピード入門', desc:'タイピングが はやく なってきた！', icon:'⚡', category:'speed', condition: (stats, session) => session.wpm >= 20 },
+  { id:'wpm_30', name:'スピードスター', desc:'かなり はやく うてるように なった！', icon:'💨', category:'speed', condition: (stats, session) => session.wpm >= 30 },
+  { id:'wpm_40', name:'光速タイパー', desc:'すごい スピード！', icon:'🚀', category:'speed', condition: (stats, session) => session.wpm >= 40 },
+  { id:'wpm_50', name:'神速の指', desc:'もう プロ レベル！', icon:'⚡', category:'speed', condition: (stats, session) => session.wpm >= 50 },
+
+  // 精度系 3種
+  { id:'perfect', name:'パーフェクト', desc:'ミスなし！ かんぺき！', icon:'💯', category:'accuracy', condition: (stats, session) => session.acc === 100 },
+  { id:'acc95_5', name:'精密機械', desc:'いつも せいかく に うてる！', icon:'🎯', category:'accuracy', condition: (stats) => stats.recent.slice(0,5).every(r => r.acc >= 95) && stats.recent.length >= 5 },
+  { id:'acc98_3', name:'正確王', desc:'ほぼ かんぺき！', icon:'👑', category:'accuracy', condition: (stats) => stats.recent.slice(0,3).every(r => r.acc >= 98) && stats.recent.length >= 3 },
+
+  // 継続系 3種
+  { id:'days7', name:'週間チャンピオン', desc:'1しゅうかん つづけた！', icon:'🏆', category:'streak' },
+  { id:'days30', name:'月間マスター', desc:'1か月 つづけた！ すごい！', icon:'🎖️', category:'streak' },
+  { id:'sessions50', name:'練習の鬼', desc:'たくさん れんしゅう した！', icon:'💪', category:'streak', condition: (stats) => stats.sessions >= 50 },
+
+  // レベル別達成系 3種
+  { id:'all_kana', name:'ひらがな博士', desc:'ひらがな マスター！', icon:'📚', category:'achievement' },
+  { id:'all_alpha', name:'アルファベット名人', desc:'アルファベット マスター！', icon:'🔤', category:'achievement' },
+  { id:'all_romaji', name:'ローマ字マスター', desc:'ローマ字 マスター！', icon:'📖', category:'achievement' },
 ];
 
 function hasBadge(id){
@@ -401,13 +459,26 @@ function grantBadge(id){
 function renderBadges(){
   const unlocked = Object.keys(stats.badges||{}).length;
   badgeCountEl.textContent = String(unlocked);
+  badgeTotalEl && (badgeTotalEl.textContent = String(BADGES.length));
+
+  const badgeUnlockedEl = document.getElementById('badgeUnlocked');
+  const badgeTotal2El = document.getElementById('badgeTotal2');
+  if(badgeUnlockedEl) badgeUnlockedEl.textContent = String(unlocked);
+  if(badgeTotal2El) badgeTotal2El.textContent = String(BADGES.length);
+
   if(!badgesGrid) return;
   badgesGrid.innerHTML = '';
   for(const b of BADGES){
-    const unlocked = hasBadge(b.id);
+    const isUnlocked = hasBadge(b.id);
     const div = document.createElement('div');
-    div.className = 'badgeCard' + (unlocked ? '' : ' locked');
-    div.innerHTML = `<div class="badgeName">${b.name}${unlocked ? '' : '（？）'}</div><div class="badgeDesc">${b.desc}</div>`;
+    div.className = 'badgeCard' + (isUnlocked ? '' : ' locked');
+    const icon = b.icon || '🏅';
+    const statusIcon = isUnlocked ? '✅' : '🔒';
+    div.innerHTML = `
+      <div style="font-size:24px;margin-bottom:4px;">${icon} ${statusIcon}</div>
+      <div class="badgeName">${b.name}</div>
+      <div class="badgeDesc">${b.desc}</div>
+    `;
     badgesGrid.appendChild(div);
   }
 }
@@ -553,6 +624,8 @@ function startGame(){
   resultCard.hidden = true;
   setupCard && (setupCard.hidden = true);
   gameCard.hidden = false;
+  gameCard.classList.add('page-enter');
+  setTimeout(() => gameCard.classList.remove('page-enter'), 500);
   showKeyboardForMode(mode);
 
   nextPrompt();
@@ -657,6 +730,9 @@ function nextPrompt(){
   correctEl.textContent = String(game.correct);
   missEl.textContent = String(game.miss);
 
+  // アニメーションクラスをクリア
+  promptEl.classList.remove('success', 'error');
+
   if(game.mode==='alpha') highlightKey(String(item));
   else highlightKey(null);
 }
@@ -740,11 +816,20 @@ function accept(forceOk = null){
     }
   }
 
-  if(ok) { game.correct++; sfxOk(); }
+  if(ok) {
+    game.correct++;
+    sfxOk();
+    // 正解アニメーション
+    promptEl.classList.add('success');
+    setTimeout(() => promptEl.classList.remove('success'), 400);
+  }
   else {
     game.miss++;
     recordMiss(game.mode, item);
     sfxMiss();
+    // 不正解アニメーション
+    promptEl.classList.add('error');
+    setTimeout(() => promptEl.classList.remove('error'), 400);
   }
 
   typeInput.value='';
@@ -768,6 +853,43 @@ function endGame(){
   rScoreEl.textContent = String(score);
   rTimeEl.textContent = String(elapsedSec);
 
+  // 前回との比較表示
+  if(stats.recent.length > 0){
+    const prev = stats.recent[0];
+    const accDiff = acc - (prev.acc || 0);
+    const wpmDiff = wpm - (prev.wpm || 0);
+    const scoreDiff = score - (prev.score || 0);
+
+    if(rAccChangeEl){
+      rAccChangeEl.textContent = accDiff > 0 ? `⬆ +${Math.round(accDiff)}%` : accDiff < 0 ? `⬇ ${Math.round(accDiff)}%` : '';
+      rAccChangeEl.className = 'change ' + (accDiff > 0 ? 'positive' : accDiff < 0 ? 'negative' : '');
+    }
+    if(rWpmChangeEl){
+      rWpmChangeEl.textContent = wpmDiff > 0 ? `⬆ +${Math.round(wpmDiff)}` : wpmDiff < 0 ? `⬇ ${Math.round(wpmDiff)}` : '';
+      rWpmChangeEl.className = 'change ' + (wpmDiff > 0 ? 'positive' : wpmDiff < 0 ? 'negative' : '');
+    }
+    if(rScoreChangeEl){
+      rScoreChangeEl.textContent = scoreDiff > 0 ? `⬆ +${Math.round(scoreDiff)}` : scoreDiff < 0 ? `⬇ ${Math.round(scoreDiff)}` : '';
+      rScoreChangeEl.className = 'change ' + (scoreDiff > 0 ? 'positive' : scoreDiff < 0 ? 'negative' : '');
+    }
+  } else {
+    // 初回は比較なし
+    if(rAccChangeEl) rAccChangeEl.textContent = '';
+    if(rWpmChangeEl) rWpmChangeEl.textContent = '';
+    if(rScoreChangeEl) rScoreChangeEl.textContent = '';
+  }
+
+  // 高得点時の紙吹雪エフェクト
+  if(acc >= 95 && typeof confetti !== 'undefined'){
+    try{
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }catch{}
+  }
+
   // save stats
   stats.sessions = (stats.sessions||0) + 1;
   stats.recent.unshift({ acc, wpm, score, mode: game.mode, level: game.level, at: Date.now() });
@@ -779,26 +901,48 @@ function endGame(){
 
   // --- badges ---
   const newly = [];
+  const session = { acc, wpm, score };
+
+  // 既存バッジ
   if(stats.sessions === 1) if (grantBadge('first_play')) newly.push('はじめての一歩');
   if(acc >= 95) if (grantBadge('acc95')) newly.push('せいかく名人');
 
   const recentAcc95 = stats.recent.slice(0,3).every(r => (r.acc||0) >= 95);
   if(stats.recent.length >= 3 && recentAcc95) if (grantBadge('acc95_3')) newly.push('3れんしょう');
 
-  if(consecutiveDaysCount(stats.daily) >= 2) if (grantBadge('days2')) newly.push('まいにち');
+  const consecutiveDays = consecutiveDaysCount(stats.daily);
+  if(consecutiveDays >= 2) if (grantBadge('days2')) newly.push('まいにち');
 
   if(game.mode === 'kana' && game.level === 'vowels' && acc >= 95) if (grantBadge('vowels_master')) newly.push('母音マスター');
   if(game.mode === 'kana' && game.level === 'yoon' && acc >= 95) if (grantBadge('yoon_clear')) newly.push('拗音クリア');
   if(game.mode === 'romaji') if (grantBadge('romaji_explorer')) newly.push('ローマ字たんけん');
 
+  // 新規バッジ: 速度系
+  if(wpm >= 20) if (grantBadge('wpm_20')) newly.push('スピード入門');
+  if(wpm >= 30) if (grantBadge('wpm_30')) newly.push('スピードスター');
+  if(wpm >= 40) if (grantBadge('wpm_40')) newly.push('光速タイパー');
+  if(wpm >= 50) if (grantBadge('wpm_50')) newly.push('神速の指');
+
+  // 新規バッジ: 精度系
+  if(acc === 100) if (grantBadge('perfect')) newly.push('パーフェクト');
+  if(stats.recent.slice(0,5).every(r => r.acc >= 95) && stats.recent.length >= 5) if (grantBadge('acc95_5')) newly.push('精密機械');
+  if(stats.recent.slice(0,3).every(r => r.acc >= 98) && stats.recent.length >= 3) if (grantBadge('acc98_3')) newly.push('正確王');
+
+  // 新規バッジ: 継続系
+  if(consecutiveDays >= 7) if (grantBadge('days7')) newly.push('週間チャンピオン');
+  if(consecutiveDays >= 30) if (grantBadge('days30')) newly.push('月間マスター');
+  if(stats.sessions >= 50) if (grantBadge('sessions50')) newly.push('練習の鬼');
+
   saveStats(stats);
   renderStats();
   if(newly.length){
-    showToast(`バッジGET！ ${newly[0]}`);
+    showToast(`🏅 バッジGET！ ${newly[0]}`);
   }
 
   gameCard.hidden = true;
   resultCard.hidden = false;
+  resultCard.classList.add('page-enter');
+  setTimeout(() => resultCard.classList.remove('page-enter'), 500);
   highlightKey(null);
 }
 
@@ -809,6 +953,8 @@ function stopGame(){
     gameCard.hidden = true;
     resultCard.hidden = true;
     setupCard && (setupCard.hidden = false);
+    setupCard && setupCard.classList.add('page-enter');
+    setTimeout(() => setupCard && setupCard.classList.remove('page-enter'), 500);
     highlightKey(null);
   }
 }
@@ -994,6 +1140,8 @@ againBtn.addEventListener('click', () => {
 backBtn.addEventListener('click', () => {
   resultCard.hidden = true;
   setupCard && (setupCard.hidden = false);
+  setupCard && setupCard.classList.add('page-enter');
+  setTimeout(() => setupCard && setupCard.classList.remove('page-enter'), 500);
 });
 
 resetStatsBtn.addEventListener('click', () => {
@@ -1019,6 +1167,16 @@ soundToggleEl.addEventListener('change', () => {
   }
 });
 
+// テーマ切り替え
+themeToggle?.addEventListener('click', toggleTheme);
+
 // init
 setLevels();
 renderStats();
+applyTheme(getInitialTheme());
+
+// 初期表示時のアニメーション
+if(setupCard){
+  setupCard.classList.add('page-enter');
+  setTimeout(() => setupCard.classList.remove('page-enter'), 500);
+}

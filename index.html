@@ -10,9 +10,13 @@
 <body>
   <header class="container">
     <div class="topRow">
-      <h1>タイピングの森</h1>
+      <h1>🌲 タイピングの森</h1>
       <div class="topActions">
-        <button id="badgesBtn" type="button" class="chip">バッジ <span id="badgeCount">0</span></button>
+        <button id="themeToggle" type="button" class="chip" aria-label="テーマ切り替え">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-label">ダーク</span>
+        </button>
+        <button id="badgesBtn" type="button" class="chip">🏅 バッジ <span id="badgeCount">0</span>/<span id="badgeTotal">20</span></button>
         <div class="badge" id="streakBadge" title="きょうのれんしゅう">きょう: 0</div>
       </div>
     </div>
@@ -105,30 +109,47 @@
     </section>
 
     <section class="card" id="resultCard" aria-label="けっか" hidden>
-      <h2>けっか</h2>
+      <h2 style="text-align:center;font-size:28px;">🎉 おつかれさま！</h2>
       <div class="resultGrid">
-        <div class="stat"><div class="k">せいかいりつ</div><div class="v"><span id="rAcc">0</span>%</div></div>
-        <div class="stat"><div class="k">WPM</div><div class="v"><span id="rWpm">0</span></div></div>
-        <div class="stat"><div class="k">スコア</div><div class="v"><span id="rScore">0</span></div></div>
-        <div class="stat"><div class="k">じかん</div><div class="v"><span id="rTime">0</span>s</div></div>
+        <div class="stat">
+          <div class="k">🎯 せいかいりつ</div>
+          <div class="v"><span id="rAcc">0</span>%</div>
+          <div class="change" id="rAccChange"></div>
+        </div>
+        <div class="stat">
+          <div class="k">⚡ WPM</div>
+          <div class="v"><span id="rWpm">0</span></div>
+          <div class="change" id="rWpmChange"></div>
+        </div>
+        <div class="stat">
+          <div class="k">⭐ スコア</div>
+          <div class="v"><span id="rScore">0</span></div>
+          <div class="change" id="rScoreChange"></div>
+        </div>
+        <div class="stat">
+          <div class="k">⏱ じかん</div>
+          <div class="v"><span id="rTime">0</span>s</div>
+        </div>
       </div>
       <div class="actions">
-        <button class="primary" id="againBtn" type="button">もういっかい</button>
-        <button id="backBtn" type="button">もどる</button>
+        <button class="primary" id="againBtn" type="button">▶ もういっかい</button>
+        <button id="backBtn" type="button">🏠 もどる</button>
       </div>
     </section>
   </main>
 
   <dialog id="badgesDialog">
     <form method="dialog" class="dialog">
-      <h3>バッジ</h3>
+      <h3>🏅 バッジコレクション</h3>
+      <p style="text-align:center;color:var(--muted);margin:0 0 16px 0;"><span id="badgeUnlocked">0</span>/<span id="badgeTotal2">20</span> かくとく</p>
       <div id="badgesGrid" class="badgesGrid"></div>
-      <div class="actions">
-        <button value="ok" type="submit">とじる</button>
+      <div class="actions" style="margin-top:20px;">
+        <button value="ok" type="submit" class="primary">とじる</button>
       </div>
     </form>
   </dialog>
 
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
