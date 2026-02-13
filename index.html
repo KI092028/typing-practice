@@ -8,143 +8,261 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="container">
-    <div class="topRow">
-      <h1>🌲 タイピングの森</h1>
-      <div class="topActions">
-        <button id="themeToggle" type="button" class="chip" aria-label="テーマ切り替え">
-          <span class="theme-icon">🌙</span>
-          <span class="theme-label">ダーク</span>
-        </button>
-        <button id="badgesBtn" type="button" class="chip">🏅 バッジ <span id="badgeCount">0</span>/<span id="badgeTotal">20</span></button>
-        <div class="badge" id="streakBadge" title="きょうのれんしゅう">きょう: 0</div>
+
+  <!-- ========== HEADER (shared) ========== -->
+  <header class="header" id="appHeader">
+    <div class="header-logo">
+      <span class="logo-emoji">🌲</span>
+      <span class="logo-text">タイピングの森</span>
+    </div>
+    <div class="header-actions" id="headerActions">
+      <button id="themeToggle" type="button" class="pill-btn" aria-label="テーマ切り替え">
+        <span class="pill-emoji theme-icon">☀️</span>
+        <span class="theme-label">ライト</span>
+      </button>
+      <button id="badgesBtn" type="button" class="pill-btn pill-btn--coral">
+        <span class="pill-emoji">🏅</span>
+        <span><span id="badgeCount">0</span>/<span id="badgeTotal">20</span></span>
+      </button>
+      <div class="pill-btn" id="streakBadge">
+        <span class="pill-emoji">📅</span>
+        <span>きょう: 0かい</span>
       </div>
     </div>
+  </header>
 
-    <section class="card" id="setupCard" aria-label="コース選択">
-      <div class="courseRow">
-        <div class="field inline">
-          <label for="mode">コース</label>
-          <select id="mode">
-            <option value="kana">① ひらがな（ローマ字でうつ）</option>
-            <option value="alpha">② アルファベット（A〜Z）</option>
-            <option value="romaji">③ ローマ字（たんご/ぶんしょう）</option>
-          </select>
+  <!-- ========== HOME SCREEN ========== -->
+  <div id="homeScreen" class="screen active">
+    <div class="main-content">
+
+      <!-- Grade Presets -->
+      <section class="grade-section" aria-label="おすすめコース">
+        <div class="grade-section__label">おすすめコース</div>
+        <div class="grade-row">
+          <button type="button" class="grade-btn active" data-preset="g1">小1</button>
+          <button type="button" class="grade-btn" data-preset="g2">小2</button>
+          <button type="button" class="grade-btn" data-preset="g3">小3</button>
+          <button type="button" class="grade-btn" data-preset="g4">小4</button>
+          <button type="button" class="grade-btn" data-preset="g5">小5</button>
+          <button type="button" class="grade-btn" data-preset="g6">小6</button>
         </div>
+      </section>
 
-        <div class="field inline presets">
-          <label>おすすめ</label>
-          <div class="presetRow">
-            <button type="button" class="presetBtn" data-preset="g1">小1</button>
-            <button type="button" class="presetBtn" data-preset="g2">小2</button>
-            <button type="button" class="presetBtn" data-preset="g3">小3</button>
-            <button type="button" class="presetBtn" data-preset="g4">小4</button>
-            <button type="button" class="presetBtn" data-preset="g5">小5</button>
-            <button type="button" class="presetBtn" data-preset="g6">小6</button>
+      <!-- Course Cards -->
+      <section class="course-cards" aria-label="コース選択">
+        <div class="course-card course-card--coral active" data-mode="kana">
+          <div class="course-card__num">①</div>
+          <div class="course-card__title">ひらがな</div>
+          <div class="course-card__desc">ローマ字でひらがなをうつ</div>
+        </div>
+        <div class="course-card course-card--indigo" data-mode="alpha">
+          <div class="course-card__num">②</div>
+          <div class="course-card__title">アルファベット</div>
+          <div class="course-card__desc">A-Zをタイプする</div>
+        </div>
+        <div class="course-card course-card--green" data-mode="romaji">
+          <div class="course-card__num">③</div>
+          <div class="course-card__title">ローマ字</div>
+          <div class="course-card__desc">たんご・ぶんをうつ</div>
+        </div>
+      </section>
+
+      <!-- Hidden selects for backward compatibility -->
+      <select id="mode" class="hidden-select" aria-hidden="true">
+        <option value="kana" selected>ひらがな</option>
+        <option value="alpha">アルファベット</option>
+        <option value="romaji">ローマ字</option>
+      </select>
+      <select id="level" class="hidden-select" aria-hidden="true"></select>
+
+      <!-- Settings Row -->
+      <section class="settings-row" aria-label="せってい">
+        <div class="setting-group">
+          <span class="setting-group__label">レベル:</span>
+          <div id="levelChips" class="grade-row">
+            <!-- Populated by JS -->
           </div>
         </div>
-        <div class="field inline">
-          <label for="level">レベル</label>
-          <select id="level"></select>
-        </div>
-        <div class="field inline">
-          <label for="length">もんだい数</label>
-          <select id="length">
+        <div class="setting-group">
+          <span class="setting-group__label">もんだい:</span>
+          <select id="length" class="styled-select">
             <option value="10">10</option>
             <option value="20" selected>20</option>
             <option value="30">30</option>
           </select>
         </div>
-        <div class="field inline">
-          <label class="switch">
-            <input id="soundToggle" type="checkbox" checked />
-            <span>おと</span>
-          </label>
+        <label class="sound-toggle">
+          <input id="soundToggle" type="checkbox" checked />
+          <span>おと</span>
+        </label>
+      </section>
+
+      <!-- Start Button -->
+      <button class="start-btn" id="startBtn" type="button">
+        <span class="btn-emoji">🚀</span>
+        スタート
+      </button>
+
+      <!-- Stats Section -->
+      <section class="stats-section" aria-label="きろく">
+        <div class="stats-section__label">きろく</div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-card__value stat-card__value--coral"><span id="acc">-</span>%</div>
+            <div class="stat-card__label">せいかくりつ</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value stat-card__value--indigo"><span id="wpm">-</span></div>
+            <div class="stat-card__label">WPM</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value stat-card__value--green"><span id="score">-</span></div>
+            <div class="stat-card__label">スコア</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value stat-card__value--amber"><span id="sessions">0</span></div>
+            <div class="stat-card__label">れんしゅう</div>
+          </div>
         </div>
-        <div class="actions">
-          <button class="primary" id="startBtn" type="button">スタート</button>
-          <button id="resetStatsBtn" class="danger" type="button">きろくをリセット</button>
+        <button id="resetStatsBtn" class="reset-btn" type="button">きろくをリセット</button>
+      </section>
+
+      <div class="muted-text">※きろくはこのブラウザにほぞんされます</div>
+
+    </div>
+  </div>
+
+  <!-- ========== GAME SCREEN ========== -->
+  <div id="gameScreen" class="screen">
+    <div class="game-main">
+
+      <!-- Progress -->
+      <div class="progress-row">
+        <span class="progress-label" id="progressLabel">もんだい 0/0</span>
+        <div class="progress-bar">
+          <div class="progress-bar__fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <span class="progress-percent" id="progressPercent">0%</span>
+      </div>
+
+      <!-- Prompt Card -->
+      <div class="prompt-card">
+        <div class="prompt-char" id="prompt">-</div>
+        <div class="meaning-text" id="meaning"></div>
+        <div class="hint-text" id="hint"></div>
+        <div class="feedback-badge feedback-badge--success" id="feedbackBadge">
+          <span>✓</span>
+          <span id="feedbackText">せいかい！</span>
         </div>
       </div>
 
-      <div class="statsRow" aria-label="きろく">
-        <div class="stat"><div class="k">さいきんのせいかいりつ</div><div class="v"><span id="acc">-</span>%</div></div>
-        <div class="stat"><div class="k">さいきんのWPM</div><div class="v"><span id="wpm">-</span></div></div>
-        <div class="stat"><div class="k">さいきんのスコア</div><div class="v"><span id="score">-</span></div></div>
-        <div class="stat"><div class="k">ごうけいれんしゅう</div><div class="v"><span id="sessions">0</span> かい</div></div>
-      </div>
-      <div class="muted">※きろくはこのブラウザ（localStorage）にほぞんされます</div>
-    </section>
-  </header>
+      <!-- Input Field -->
+      <input id="typeInput" class="input-field" type="text" inputmode="latin"
+             autocomplete="off" autocapitalize="off" spellcheck="false"
+             placeholder="ここにうつ..." />
 
-  <main class="container">
-    <section class="card" id="gameCard" aria-label="れんしゅう" hidden>
-      <div class="gameTop">
-        <div class="promptWrap">
-          <div class="promptLabel">もんだい</div>
-          <div class="prompt" id="prompt">-</div>
-          <div class="meaning" id="meaning"></div>
-          <div class="hint" id="hint"></div>
+      <!-- Status Row -->
+      <div class="status-row">
+        <div class="status-item">
+          <div class="status-item__value status-item__value--default" id="remaining">0</div>
+          <div class="status-item__label">のこり</div>
         </div>
-        <div class="scoreWrap">
-          <div class="mini">のこり</div>
-          <div class="big" id="remaining">0</div>
-          <div class="mini">せいかい</div>
-          <div class="big" id="correct">0</div>
-          <div class="mini">ミス</div>
-          <div class="big" id="miss">0</div>
+        <div class="status-item">
+          <div class="status-item__value status-item__value--green" id="correct">0</div>
+          <div class="status-item__label">せいかい</div>
+        </div>
+        <div class="status-item">
+          <div class="status-item__value status-item__value--coral" id="miss">0</div>
+          <div class="status-item__label">ミス</div>
         </div>
       </div>
 
-      <div class="inputRow">
-        <input id="typeInput" type="text" inputmode="latin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ここにうつ" />
-        <button id="giveUpBtn" type="button">やめる</button>
-      </div>
-
+      <!-- Keyboard -->
       <div class="keyboard" id="keyboard" aria-label="キーボード" hidden>
         <div class="keyRow" data-row="1"></div>
         <div class="keyRow" data-row="2"></div>
         <div class="keyRow" data-row="3"></div>
       </div>
-    </section>
 
-    <section class="card" id="resultCard" aria-label="けっか" hidden>
-      <h2 style="text-align:center;font-size:28px;">🎉 おつかれさま！</h2>
-      <div class="resultGrid">
-        <div class="stat">
-          <div class="k">🎯 せいかいりつ</div>
-          <div class="v"><span id="rAcc">0</span>%</div>
-          <div class="change" id="rAccChange"></div>
+      <!-- Quit Button -->
+      <button id="giveUpBtn" class="quit-btn" type="button">やめる</button>
+
+    </div>
+  </div>
+
+  <!-- ========== RESULT SCREEN ========== -->
+  <div id="resultScreen" class="screen">
+    <div class="result-main">
+
+      <div class="result-congrats">🎉 おつかれさま！</div>
+
+      <!-- Metrics Card -->
+      <div class="metrics-card">
+        <div class="metrics-row">
+          <div class="metric-item">
+            <div class="metric-item__label">せいかいりつ</div>
+            <div class="metric-item__value-row">
+              <div class="metric-item__value metric-item__value--coral"><span id="rAcc">0</span>%</div>
+              <span class="metric-diff" id="rAccChange"></span>
+            </div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-item__label">WPM</div>
+            <div class="metric-item__value-row">
+              <div class="metric-item__value metric-item__value--indigo"><span id="rWpm">0</span></div>
+              <span class="metric-diff" id="rWpmChange"></span>
+            </div>
+          </div>
         </div>
-        <div class="stat">
-          <div class="k">⚡ WPM</div>
-          <div class="v"><span id="rWpm">0</span></div>
-          <div class="change" id="rWpmChange"></div>
-        </div>
-        <div class="stat">
-          <div class="k">⭐ スコア</div>
-          <div class="v"><span id="rScore">0</span></div>
-          <div class="change" id="rScoreChange"></div>
-        </div>
-        <div class="stat">
-          <div class="k">⏱ じかん</div>
-          <div class="v"><span id="rTime">0</span>s</div>
+        <div class="metrics-row">
+          <div class="metric-item">
+            <div class="metric-item__label">スコア</div>
+            <div class="metric-item__value-row">
+              <div class="metric-item__value metric-item__value--green"><span id="rScore">0</span></div>
+              <span class="metric-diff" id="rScoreChange"></span>
+            </div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-item__label">もんだいすう</div>
+            <div class="metric-item__value-row">
+              <div class="metric-item__value metric-item__value--default"><span id="rTotal">0</span></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="actions">
-        <button class="primary" id="againBtn" type="button">▶ もういっかい</button>
-        <button id="backBtn" type="button">🏠 もどる</button>
-      </div>
-    </section>
-  </main>
 
+      <!-- Badge Notification (shown dynamically) -->
+      <div class="badge-notification" id="badgeNotification" hidden>
+        <span class="badge-notification__icon">🏅</span>
+        <div>
+          <div class="badge-notification__title" id="badgeNotifTitle">バッジGET！</div>
+          <div class="badge-notification__desc" id="badgeNotifDesc"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-row">
+        <button id="againBtn" class="action-btn action-btn--secondary" type="button">
+          🔄 もういちど
+        </button>
+        <button id="backBtn" class="action-btn action-btn--primary" type="button">
+          🏠 ホームにもどる
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== BADGES DIALOG ========== -->
   <dialog id="badgesDialog">
-    <form method="dialog" class="dialog">
+    <form method="dialog">
       <h3>🏅 バッジコレクション</h3>
-      <p style="text-align:center;color:var(--muted);margin:0 0 16px 0;"><span id="badgeUnlocked">0</span>/<span id="badgeTotal2">20</span> かくとく</p>
+      <p style="text-align:center;color:var(--text-tertiary);margin:0 0 16px 0;">
+        <span id="badgeUnlocked">0</span>/<span id="badgeTotal2">20</span> かくとく
+      </p>
       <div id="badgesGrid" class="badgesGrid"></div>
-      <div class="actions" style="margin-top:20px;">
-        <button value="ok" type="submit" class="primary">とじる</button>
+      <div class="action-row" style="margin-top:20px;">
+        <button value="ok" type="submit" class="action-btn action-btn--primary">とじる</button>
       </div>
     </form>
   </dialog>
